@@ -132,8 +132,8 @@ const AdvancedQueensGame: React.FC = () => {
         if (isQueenPlacementValid(row, col)) {
           newBoard[row][col] = 'Q';
         } else {
-          setMessage('Invalid queen placement. Check row, column, diagonal, and color region.');
-          return;
+          // Instead of returning, we now remove the X
+          newBoard[row][col] = null;
         }
         break;
       case 'Q':
