@@ -6,4 +6,3 @@ module.exports = {
   assetPrefix: isProd ? '/{queens-game}' : '',
   basePath: isProd ? '/{queens-game}' : '',
 }
-const isProd = process.env.NODE_ENV === 'production'
