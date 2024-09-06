@@ -26,8 +26,8 @@ const AdvancedQueensGame: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const boardRef = useRef<HTMLDivElement>(null);
   const [lastInteractionTime, setLastInteractionTime] = useState<number>(0);
-  const interactionDelay = 300; // 300ms delay
-
+  const interactionDelay = 500; // 500ms delay for queen placement
+  
   
 
   const clearBoard = useCallback(() => {
@@ -127,23 +127,32 @@ const AdvancedQueensGame: React.FC = () => {
   
     const currentTime = new Date().getTime();
     const newBoard = [...board];
-
-    if (newBoard[row][col] === null || (forceX && newBoard[row][col] !== 'X')) {
+  
+    if (forceX) {
+      // If forceX is true (dragging), always place or keep an X
       newBoard[row][col] = 'X';
+    } else {
+      // Normal click interactions
+      if (newBoard[row][col] === null) {
+        // Empty cell: place an X
+        newBoard[row][col] = 'X';
+        setLastInteractionTime(currentTime);
+      } else if (newBoard[row][col] === 'X') {
+        if (currentTime - lastInteractionTime < interactionDelay) {
+          // Quick click on X: remove it
+          newBoard[row][col] = null;
+        } else if (isQueenPlacementValid(row, col)) {
+          // Delayed click on X: place a Queen if valid
+          newBoard[row][col] = 'Q';
+        } else {
+          setMessage('Invalid queen placement. Check row, column, diagonal, and color region.');
+          return;
+        }
+      } else if (newBoard[row][col] === 'Q') {
+        // Queen placed: remove it (back to empty)
+        newBoard[row][col] = null;
+      }
       setLastInteractionTime(currentTime);
-    } else if (newBoard[row][col] === 'X' && !forceX) {
-      if (currentTime - lastInteractionTime < interactionDelay) {
-        // If the interaction is too quick, just return without doing anything
-        return;
-      }
-      if (isQueenPlacementValid(row, col)) {
-        newBoard[row][col] = 'Q';
-      } else {
-        setMessage('Invalid queen placement. Check row, column, diagonal, and color region.');
-        return;
-      }
-    } else if (!forceX) {
-      newBoard[row][col] = null;
     }
   
     setBoard(newBoard);
@@ -350,21 +359,24 @@ const AdvancedQueensGame: React.FC = () => {
                 {board.map((row, rowIndex) =>
                   row.map((cell, colIndex) => (
                     <div
-                      key={`${rowIndex}-${colIndex}`}
-                      className={`
-                        flex items-center justify-center cursor-pointer
-                        ${getRegionColor(colorRegions[rowIndex]?.[colIndex] ?? 0)}
-                        ${hintCells.some(h => h.row === rowIndex && h.col === colIndex) ? 'border-2 border-red-500' : ''}
-                        ${queenHint && queenHint.row === rowIndex && queenHint.col === colIndex ? 'border-4 border-black' : ''}
-                      `}
-                      style={{
-                        width: `${getCellSize()}px`,
-                        height: `${getCellSize()}px`,
-                      }}
-                      onClick={() => handleCellInteraction(rowIndex, colIndex)}
-                    >
-                      {cell === 'Q' ? <Crown className="w-3/4 h-3/4 text-black" /> : cell === 'X' ? <X className="w-3/4 h-3/4 text-black" /> : null}
-                    </div>
+                    key={`${rowIndex}-${colIndex}`}
+                    className={`
+                      flex items-center justify-center cursor-pointer
+                      ${getRegionColor(colorRegions[rowIndex]?.[colIndex] ?? 0)}
+                      ${hintCells.some(h => h.row === rowIndex && h.col === colIndex) ? 'border-2 border-red-500' : ''}
+                      ${queenHint && queenHint.row === rowIndex && queenHint.col === colIndex ? 'border-4 border-black' : ''}
+                      ${cell === 'X' && (new Date().getTime() - lastInteractionTime >= interactionDelay) ? 'opacity-50' : ''}
+                      transition-all duration-200
+                    `}
+                    style={{
+                      width: `${getCellSize()}px`,
+                      height: `${getCellSize()}px`,
+                    }}
+                    onClick={() => handleCellInteraction(rowIndex, colIndex)}
+                    onMouseEnter={() => cell === 'X' && setLastInteractionTime(new Date().getTime())}
+                  >
+                    {cell === 'Q' ? <Crown className="w-3/4 h-3/4 text-black" /> : cell === 'X' ? <X className="w-3/4 h-3/4 text-black" /> : null}
+                  </div>  
                   ))
                 )}
               </div>
