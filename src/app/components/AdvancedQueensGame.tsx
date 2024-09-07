@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { generateBoard, Board } from '@/utils/boardGenerator';
+import VictorySplashScreen from './VictorySplashScreen';  // Import the new component
 
 const AdvancedQueensGame: React.FC = () => {
   const [gridSize, setGridSize] = useState<number>(8);
@@ -24,8 +25,9 @@ const AdvancedQueensGame: React.FC = () => {
   const [generationProgress, setGenerationProgress] = useState<number>(0);
   const [queenHint, setQueenHint] = useState<{row: number, col: number} | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const boardRef = useRef<HTMLDivElement>(null);
   const [lastInteractedCell, setLastInteractedCell] = useState<{ row: number; col: number } | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [showVictoryScreen, setShowVictoryScreen] = useState<boolean>(false);
 
   const clearBoard = useCallback(() => {
     setBoard(Array(gridSize).fill(null).map(() => Array(gridSize).fill(null)));
@@ -132,7 +134,6 @@ const AdvancedQueensGame: React.FC = () => {
         if (isQueenPlacementValid(row, col)) {
           newBoard[row][col] = 'Q';
         } else {
-          // Instead of returning, we now remove the X
           newBoard[row][col] = null;
         }
         break;
@@ -160,7 +161,6 @@ const AdvancedQueensGame: React.FC = () => {
     }
   };
 
-
   const checkSolution = () => {
     const rowCounts = Array(gridSize).fill(0);
     const colCounts = Array(gridSize).fill(0);
@@ -182,7 +182,13 @@ const AdvancedQueensGame: React.FC = () => {
         Array.from(regionCounts.values()).every(count => count === 1)) {
       setMessage('Congratulations! You solved the puzzle!');
       setGameCompleted(true);
+      setShowVictoryScreen(true);  // Show the victory screen
     }
+  };
+
+  const handleVictoryScreenClose = () => {
+    setShowVictoryScreen(false);
+    generateValidBoard();  // Reset the game
   };
 
   const provideHint = () => {
@@ -266,14 +272,12 @@ const AdvancedQueensGame: React.FC = () => {
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     setIsDragging(true);
-    if (e.touches.length > 0) {
-      const cell = getCellFromEvent(e.touches[0]);
-      if (cell) handleCellInteraction(cell.row, cell.col);
-    }
+    const cell = getCellFromEvent(e.touches[0]);
+    if (cell) handleCellInteraction(cell.row, cell.col);
   };
   
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (isDragging && e.touches.length > 0) {
+    if (isDragging) {
       const cell = getCellFromEvent(e.touches[0]);
       if (cell && (lastInteractedCell?.row !== cell.row || lastInteractedCell?.col !== cell.col)) {
         handleCellInteraction(cell.row, cell.col);
@@ -287,39 +291,12 @@ const AdvancedQueensGame: React.FC = () => {
   };
 
   const handleTouchEnd = handleMouseUp;
-  type TouchLike = {
-    touches: { clientX: number; clientY: number }[];
-  };
   
-  const isTouchEvent = (e: unknown): e is TouchLike => {
-    return (
-      typeof e === 'object' &&
-      e !== null &&
-      'touches' in e &&
-      Array.isArray((e as TouchLike).touches) &&
-      (e as TouchLike).touches.length > 0 &&
-      'clientX' in (e as TouchLike).touches[0] &&
-      'clientY' in (e as TouchLike).touches[0]
-    );
-  };
-  
-  const getCellFromEvent = (e: React.MouseEvent | React.Touch | TouchLike): { row: number; col: number } | null => {
+  const getCellFromEvent = (e: React.MouseEvent | React.Touch): { row: number; col: number } | null => {
     if (!boardRef.current) return null;
     const rect = boardRef.current.getBoundingClientRect();
-    let x: number, y: number;
-  
-    if ('clientX' in e && 'clientY' in e) {
-      // MouseEvent or Touch
-      x = e.clientX - rect.left;
-      y = e.clientY - rect.top;
-    } else if (isTouchEvent(e)) {
-      // TouchEvent
-      x = e.touches[0].clientX - rect.left;
-      y = e.touches[0].clientY - rect.top;
-    } else {
-      return null;
-    }
-  
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     const cellSize = rect.width / gridSize;
     const row = Math.floor(y / cellSize);
     const col = Math.floor(x / cellSize);
@@ -361,21 +338,21 @@ const AdvancedQueensGame: React.FC = () => {
           ) : (
             <div className="flex justify-center mb-4">
               <div 
-      ref={boardRef}
-      className="grid gap-0.5 bg-gray-200 p-0.5 touch-none"
-      style={{ 
-        gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
-        width: `${getCellSize() * gridSize + (gridSize - 1) * 2}px`,
-        height: `${getCellSize() * gridSize + (gridSize - 1) * 2}px`,
-      }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
+              ref={boardRef}
+              className="grid gap-0.5 bg-gray-200 p-0.5 touch-none"
+              style={{ 
+                gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+                width: `${getCellSize() * gridSize + (gridSize - 1) * 2}px`,
+                height: `${getCellSize() * gridSize + (gridSize - 1) * 2}px`,
+              }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
                 {board.map((row, rowIndex) =>
                   row.map((cell, colIndex) => (
                     <div
@@ -419,6 +396,11 @@ const AdvancedQueensGame: React.FC = () => {
           )}
         </CardContent>
       </Card>
+      <VictorySplashScreen 
+        isVisible={showVictoryScreen} 
+        onClose={handleVictoryScreenClose}
+        time={formatTime(timer)}
+      />
     </div>
   );
 };
