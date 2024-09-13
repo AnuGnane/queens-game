@@ -1,9 +1,7 @@
-import AdvancedQueensGame from './components/AdvancedQueensGame';
+// src/app/page.tsx
+
+import GameSelectionScreen from './components/GameSelectionScreen';
 
 export default function Home() {
-  return (
-    <main>
-      <AdvancedQueensGame />
-    </main>
-  );
+  return <GameSelectionScreen />;
 }
