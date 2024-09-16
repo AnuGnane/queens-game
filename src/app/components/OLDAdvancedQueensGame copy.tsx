@@ -233,7 +233,10 @@ const AdvancedQueensGame: React.FC = () => {
 
   const handleVictoryScreenClose = () => {
     setShowVictoryScreen(false);
-    generateValidBoard();  // Reset the game
+  };
+
+  const handleNewGame = () => {
+    generateValidBoard();
   };
 
   const provideHint = useCallback(() => {
@@ -302,6 +305,7 @@ const AdvancedQueensGame: React.FC = () => {
     setShowingSolution(!showingSolution);
     setBoard(showingSolution ? Array(gridSize).fill(null).map(() => Array(gridSize).fill(null)) : solution);
     setHintCells([]);
+    // We're not setting gameCompleted to false here anymore
   };
 
   const handleGridSizeChange = useCallback((newSize: string) => {
@@ -495,12 +499,12 @@ const AdvancedQueensGame: React.FC = () => {
       <Card className="w-full max-w-2xl mt-4">
         <CardContent>
           <div className="flex flex-wrap justify-center gap-2 mb-4">
-            <Button onClick={generateValidBoard} variant="default" disabled={isGenerating}>
-              {isGenerating ? 'Generating...' : 'Reset'}
+            <Button onClick={handleNewGame} variant="default" disabled={isGenerating}>
+              {isGenerating ? 'Generating...' : 'New Game'}
             </Button>
-            <Button onClick={clearBoard} variant="secondary">Clear Board</Button>
-            <Button onClick={provideHint} variant="secondary">Hint</Button>
-            <Button onClick={provideQueenHint} variant="secondary">Queen Hint</Button>
+            <Button onClick={clearBoard} variant="secondary" disabled={gameCompleted || showingSolution}>Clear Board</Button>
+            <Button onClick={provideHint} variant="secondary" disabled={gameCompleted || showingSolution}>Hint</Button>
+            <Button onClick={provideQueenHint} variant="secondary" disabled={gameCompleted || showingSolution}>Queen Hint</Button>
             <Button onClick={toggleSolution} variant="outline" className="flex items-center">
               {showingSolution ? "Hide Solution" : "Show Solution"}
             </Button>
@@ -520,6 +524,7 @@ const AdvancedQueensGame: React.FC = () => {
       <VictorySplashScreen 
         isVisible={showVictoryScreen} 
         onClose={handleVictoryScreenClose}
+        onNewGame={handleNewGame}
         time={formatTime(timer)}
       />
     </div>
