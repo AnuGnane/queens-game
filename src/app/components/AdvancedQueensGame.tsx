@@ -233,7 +233,10 @@ const AdvancedQueensGame: React.FC = () => {
 
   const handleVictoryScreenClose = () => {
     setShowVictoryScreen(false);
-    generateValidBoard();  // Reset the game
+  };
+
+  const handleNewGame = () => {
+    generateValidBoard();
   };
 
   const provideHint = useCallback(() => {
@@ -242,32 +245,48 @@ const AdvancedQueensGame: React.FC = () => {
       return;
     }
 
-    const incorrectPlacements: {row: number, col: number}[] = [];
+    const validXPlacements: {row: number, col: number}[] = [];
 
     for (let row = 0; row < gridSize; row++) {
       for (let col = 0; col < gridSize; col++) {
-        if (board[row][col] === 'Q' && solution[row][col] !== 'Q') {
-          incorrectPlacements.push({row, col});
+        if (board[row][col] === null && solution[row][col] !== 'Q') {
+          // Check if this position is not under attack by any existing queen
+          let isValidXPlacement = true;
+          
+          // Check row and column
+          for (let i = 0; i < gridSize; i++) {
+            if (board[row][i] === 'Q' || board[i][col] === 'Q') {
+              isValidXPlacement = false;
+              break;
+            }
+          }
+          
+          // Check diagonals
+          if (isValidXPlacement) {
+            for (let i = 0; i < gridSize; i++) {
+              for (let j = 0; j < gridSize; j++) {
+                if (board[i][j] === 'Q' && Math.abs(i - row) === Math.abs(j - col)) {
+                  isValidXPlacement = false;
+                  break;
+                }
+              }
+              if (!isValidXPlacement) break;
+            }
+          }
+
+          if (isValidXPlacement) {
+            validXPlacements.push({row, col});
+          }
         }
       }
     }
 
-    if (incorrectPlacements.length > 0) {
-      const hintCells = incorrectPlacements.slice(0, 3);
+    if (validXPlacements.length > 0) {
+      const hintCells = validXPlacements.sort(() => 0.5 - Math.random()).slice(0, 3);
       setHintCells(hintCells);
-      setMessage(`${hintCells.length} incorrect queen placement${hintCells.length > 1 ? 's' : ''} highlighted. Try moving ${hintCells.length > 1 ? 'them' : 'it'}.`);
+      setMessage(`Highlighted ${hintCells.length} cell${hintCells.length > 1 ? 's' : ''} where you can safely place X${hintCells.length > 1 ? 's' : ''}.`);
     } else {
-      const emptyPositions = solution.flatMap((row, rowIndex) => 
-        row.map((cell, colIndex) => ({ row: rowIndex, col: colIndex, value: cell }))
-      ).filter(pos => pos.value === 'Q' && board[pos.row][pos.col] !== 'Q');
-
-      if (emptyPositions.length > 0) {
-        const hintCells = emptyPositions.sort(() => 0.5 - Math.random()).slice(0, 3);
-        setHintCells(hintCells);
-        setMessage(`Highlighted ${hintCells.length} cell${hintCells.length > 1 ? 's' : ''} where queen${hintCells.length > 1 ? 's' : ''} can be placed.`);
-      } else {
-        setMessage('Great job! All queens are correctly placed.');
-      }
+      setMessage('No valid positions for X marks. Try moving some queens or X marks.');
     }
   }, [isBoardValid, solution, gridSize, board]);
 
@@ -286,6 +305,7 @@ const AdvancedQueensGame: React.FC = () => {
     setShowingSolution(!showingSolution);
     setBoard(showingSolution ? Array(gridSize).fill(null).map(() => Array(gridSize).fill(null)) : solution);
     setHintCells([]);
+    // We're not setting gameCompleted to false here anymore
   };
 
   const handleGridSizeChange = useCallback((newSize: string) => {
@@ -479,12 +499,12 @@ const AdvancedQueensGame: React.FC = () => {
       <Card className="w-full max-w-2xl mt-4">
         <CardContent>
           <div className="flex flex-wrap justify-center gap-2 mb-4">
-            <Button onClick={generateValidBoard} variant="default" disabled={isGenerating}>
-              {isGenerating ? 'Generating...' : 'Reset'}
+            <Button onClick={handleNewGame} variant="default" disabled={isGenerating}>
+              {isGenerating ? 'Generating...' : 'New Game'}
             </Button>
-            <Button onClick={clearBoard} variant="secondary">Clear Board</Button>
-            <Button onClick={provideHint} variant="secondary">Hint</Button>
-            <Button onClick={provideQueenHint} variant="secondary">Queen Hint</Button>
+            <Button onClick={clearBoard} variant="secondary" disabled={gameCompleted || showingSolution}>Clear Board</Button>
+            <Button onClick={provideHint} variant="secondary" disabled={gameCompleted || showingSolution}>Hint</Button>
+            <Button onClick={provideQueenHint} variant="secondary" disabled={gameCompleted || showingSolution}>Queen Hint</Button>
             <Button onClick={toggleSolution} variant="outline" className="flex items-center">
               {showingSolution ? "Hide Solution" : "Show Solution"}
             </Button>
@@ -504,6 +524,7 @@ const AdvancedQueensGame: React.FC = () => {
       <VictorySplashScreen 
         isVisible={showVictoryScreen} 
         onClose={handleVictoryScreenClose}
+        onNewGame={handleNewGame}
         time={formatTime(timer)}
       />
     </div>

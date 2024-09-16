@@ -242,32 +242,48 @@ const AdvancedQueensGame: React.FC = () => {
       return;
     }
 
-    const incorrectPlacements: {row: number, col: number}[] = [];
+    const validXPlacements: {row: number, col: number}[] = [];
 
     for (let row = 0; row < gridSize; row++) {
       for (let col = 0; col < gridSize; col++) {
-        if (board[row][col] === 'Q' && solution[row][col] !== 'Q') {
-          incorrectPlacements.push({row, col});
+        if (board[row][col] === null && solution[row][col] !== 'Q') {
+          // Check if this position is not under attack by any existing queen
+          let isValidXPlacement = true;
+          
+          // Check row and column
+          for (let i = 0; i < gridSize; i++) {
+            if (board[row][i] === 'Q' || board[i][col] === 'Q') {
+              isValidXPlacement = false;
+              break;
+            }
+          }
+          
+          // Check diagonals
+          if (isValidXPlacement) {
+            for (let i = 0; i < gridSize; i++) {
+              for (let j = 0; j < gridSize; j++) {
+                if (board[i][j] === 'Q' && Math.abs(i - row) === Math.abs(j - col)) {
+                  isValidXPlacement = false;
+                  break;
+                }
+              }
+              if (!isValidXPlacement) break;
+            }
+          }
+
+          if (isValidXPlacement) {
+            validXPlacements.push({row, col});
+          }
         }
       }
     }
 
-    if (incorrectPlacements.length > 0) {
-      const hintCells = incorrectPlacements.slice(0, 3);
+    if (validXPlacements.length > 0) {
+      const hintCells = validXPlacements.sort(() => 0.5 - Math.random()).slice(0, 3);
       setHintCells(hintCells);
-      setMessage(`${hintCells.length} incorrect queen placement${hintCells.length > 1 ? 's' : ''} highlighted. Try moving ${hintCells.length > 1 ? 'them' : 'it'}.`);
+      setMessage(`Highlighted ${hintCells.length} cell${hintCells.length > 1 ? 's' : ''} where you can safely place X${hintCells.length > 1 ? 's' : ''}.`);
     } else {
-      const emptyPositions = solution.flatMap((row, rowIndex) => 
-        row.map((cell, colIndex) => ({ row: rowIndex, col: colIndex, value: cell }))
-      ).filter(pos => pos.value === 'Q' && board[pos.row][pos.col] !== 'Q');
-
-      if (emptyPositions.length > 0) {
-        const hintCells = emptyPositions.sort(() => 0.5 - Math.random()).slice(0, 3);
-        setHintCells(hintCells);
-        setMessage(`Highlighted ${hintCells.length} cell${hintCells.length > 1 ? 's' : ''} where queen${hintCells.length > 1 ? 's' : ''} can be placed.`);
-      } else {
-        setMessage('Great job! All queens are correctly placed.');
-      }
+      setMessage('No valid positions for X marks. Try moving some queens or X marks.');
     }
   }, [isBoardValid, solution, gridSize, board]);
 
@@ -288,11 +304,33 @@ const AdvancedQueensGame: React.FC = () => {
     setHintCells([]);
   };
 
-  const handleGridSizeChange = (newSize: string) => {
+  const handleGridSizeChange = useCallback((newSize: string) => {
     const size = parseInt(newSize, 10);
     setGridSize(size);
-    generateValidBoard();
-  };
+    setIsGenerating(true);
+    setGenerationProgress(0);
+    
+    // Use setTimeout to ensure the UI updates before starting the generation process
+    setTimeout(() => {
+      const result = generateBoard(size);
+      if (result) {
+        const { regions, solution } = result;
+        setColorRegions(regions);
+        setSolution(solution);
+        setBoard(Array(size).fill(null).map(() => Array(size).fill(null)));
+        setHintCells([]);
+        setQueenHint(null);
+        setIsBoardValid(true);
+        setMessage('The board is valid and has a solution. Good luck!');
+        setGameCompleted(false);
+        setTimer(0);
+        setShowingSolution(false);
+      } else {
+        setMessage('Failed to generate a valid board. Please try again.');
+      }
+      setIsGenerating(false);
+    }, 100);
+  }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     setIsMouseDown(true);

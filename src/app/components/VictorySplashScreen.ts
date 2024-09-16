@@ -5,10 +5,11 @@ import confetti from 'canvas-confetti';
 interface VictorySplashScreenProps {
   isVisible: boolean;
   onClose: () => void;
+  onNewGame: () => void;
   time: string;
 }
 
-const VictorySplashScreen: React.FC<VictorySplashScreenProps> = ({ isVisible, onClose, time }) => {
+const VictorySplashScreen: React.FC<VictorySplashScreenProps> = ({ isVisible, onClose, onNewGame, time }) => {
   useEffect(() => {
     if (isVisible) {
       const duration = 5 * 1000;
@@ -54,7 +55,12 @@ const VictorySplashScreen: React.FC<VictorySplashScreenProps> = ({ isVisible, on
       React.createElement('h2', { className: "text-3xl font-bold mb-4" }, "Congratulations!"),
       React.createElement('p', { className: "text-xl mb-4" }, "You've solved the Advanced Queens Puzzle!"),
       React.createElement('p', { className: "text-lg mb-6" }, `Your time: ${time}`),
-      React.createElement(Button, { onClick: onClose }, "Play Again")
+      React.createElement(
+        'div',
+        { className: "flex justify-center space-x-4" },
+        React.createElement(Button, { onClick: onClose }, "Close"),
+        React.createElement(Button, { onClick: onNewGame }, "New Game")
+      )
     )
   );
 };
