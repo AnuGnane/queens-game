@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 const GameSelectionScreen: React.FC = () => {
   const games = [
     { id: 'queens', name: 'Advanced Queens Game', path: '/queens' },
+    { id: 'murdle', name: 'Murdle Grid', path: '/murdle' },
     // Add more games here as you create them
     // { id: 'newgame', name: 'New Game Name', path: '/newgame' },
   ];
@@ -20,7 +21,7 @@ const GameSelectionScreen: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {games.map((game) => (
-              <Link key={game.id} href={game.path}>
+              <Link key={game.id} href={game.path} passHref>
                 <Button variant="outline" className="w-full h-24 text-lg">
                   {game.name}
                 </Button>
