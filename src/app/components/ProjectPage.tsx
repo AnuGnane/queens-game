@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Heart, Settings, Edit, MessageSquare, Search } from 'lucide-react';
+import { Heart, Settings, Edit, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useProject } from '../hooks/useProject';
 

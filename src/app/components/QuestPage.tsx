@@ -1,7 +1,7 @@
 // src/app/components/QuestPage.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Filter, Heart, Settings, MessageSquare, X } from 'lucide-react';
 import Link from 'next/link';
 import { useProjects } from '../hooks/useProject';
