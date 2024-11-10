@@ -1,12 +1,22 @@
 // src/app/quest/projects/page.tsx
-'use client';
-
-import { useSearchParams } from 'next/navigation';
 import ProjectPage from '../../components/ProjectPage';
 
-export default function Project() {
-  const searchParams = useSearchParams();
-  const projectId = Number(searchParams.get('id')) || 1; // Default to project 1 if no ID provided
+// Generate static paths for all possible project IDs
+export async function generateStaticParams() {
+  return [
+    { id: '1' },
+    { id: '2' },
+    { id: '3' },
+    { id: '4' },
+    { id: '5' },
+    { id: '6' },
+    { id: '7' },
+    { id: '8' },
+    { id: '9' }
+  ];
+}
 
+export default function Project({ params }: { params?: { id?: string } }) {
+  const projectId = params?.id ? Number(params.id) : 1;
   return <ProjectPage projectId={projectId} />;
 }
