@@ -5,6 +5,13 @@ import React from 'react';
 import { Heart, Settings, Edit, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useProject } from '../hooks/useProject';
+import { Bruno_Ace_SC } from 'next/font/google';  // Add this import
+
+// Initialize the font
+const brunoAce = Bruno_Ace_SC({
+  weight: '400',
+  subsets: ['latin'],
+});
 
 interface ProjectPageProps {
   projectId: number;
@@ -31,7 +38,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ projectId }) => {
       <header className="bg-[#2320AF] text-white p-4">
         <div className="flex justify-between items-center mb-4">
           <button className="text-2xl">☰</button>
-          <h1 className="text-6xl font-semibold">QUEST</h1>
+          <h1 className={`text-6xl ${brunoAce.className}`}>QUEST</h1>
           <div className="flex items-center space-x-4">
             <div className="relative">
               <input 

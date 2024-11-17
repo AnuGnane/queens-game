@@ -5,6 +5,13 @@ import React, { useState } from 'react';
 import {  Bell, Settings, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useProjects } from '../hooks/useProject';
+import { Bruno_Ace_SC } from 'next/font/google';  // Add this import
+
+// Initialize the font
+const brunoAce = Bruno_Ace_SC({
+  weight: '400',
+  subsets: ['latin'],
+});
 
 const QuestPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,10 +56,11 @@ const QuestPage: React.FC = () => {
   return (
     <div className="relative min-h-screen bg-white text-black flex flex-col">
       {/* Header - Matched with ProjectPage */}
+      {/* Header - Updated h1 with className */}
       <header className="bg-[#2320AF] text-white p-4">
         <div className="flex justify-between items-center mb-4">
           <button className="text-2xl">☰</button>
-          <h1 className="text-6xl font-semibold">QUEST</h1>
+          <h1 className={`text-6xl ${brunoAce.className}`}>QUEST</h1>
           <div className="flex items-center space-x-4">
             <div className="relative">
               <input 
